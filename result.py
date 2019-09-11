@@ -9,7 +9,6 @@ import collections
 import common
 import tensorflow as tf
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 
 FULLSET_PATH = f'{common.BASE_DIR}/fullset.csv'
 TRAINSET_PATH = f'{common.BASE_DIR}/trainset.csv'
@@ -19,7 +18,7 @@ UNPRED_OUTPUT_PATH = f'{common.BASE_DIR}/unpredicted_map.csv'
 PRED_OUTPUT_PATH = f'{common.BASE_DIR}/predicted_map.csv'
 PROBS_OUTPUT_PATH = f'{common.BASE_DIR}/full_probs.csv'
 
-N_MODEL = 3
+N_MODEL = 10
 
 def get_codes(fullset):
     results = []

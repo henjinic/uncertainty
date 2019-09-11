@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-BASE_DIR = '.'
+BASE_DIR = './data'
 
 DISASTER_NAMES = 'fire landslide_re flood_re health product'.split()
 FEATURE_NAMES = 'geo_re pop prcp tavg'.split()
@@ -120,7 +120,7 @@ def get_curreut_time():
 
 def numbering(path, num):
     tokens = path.split('.')
-    return tokens[0] + f'_{num}.' + tokens[1]
+    return '.'.join(tokens[:-1]) + f'_{num}.' + tokens[-1]
 
 def plot_hist(hist):
     plt.plot(hist.history['acc'])

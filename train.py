@@ -14,8 +14,8 @@ TRAINSET_PATH = f'{common.BASE_DIR}/trainset.csv'
 MODEL_PATH = f'{common.BASE_DIR}/model/model.h5'
 HISTORY_PATH = f'{common.BASE_DIR}/history/history.json'
 
-N_MODEL = 3
-N_EPOCH = 10
+N_MODEL = 10
+N_EPOCH = 100
 
 def create_model(input_dim):
     model = tf.keras.models.Sequential([

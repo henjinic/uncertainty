@@ -22,25 +22,11 @@ def get_trainset(fullset):
 
         categorized_vec = common.categorize(disaster_prob_vec, 0.4, 0.6)
 
-        if common.is_certain(categorized_vec):
+        if common.is_certain(categorized_vec) and -99 not in feature_vec:
             label = common.classify(categorized_vec)
             result.append(feature_vec.tolist() + [label])
 
     return np.array(result)
-
-# def get_uncertain(dataset):
-#     result = []
-#     for row in dataset:
-#         if -99 in row:
-#             continue
-
-#         category_vec = categorize(row[:5], 0.4, 0.6)
-
-#         if -1 not in category_vec:
-#             continue
-
-#         result.append(row[5:])
-#     return np.array(result)
 
 def main():
     fullset = common.load_data(FULLSET_PATH, sep=',')
