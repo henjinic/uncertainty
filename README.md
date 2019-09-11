@@ -2,26 +2,26 @@
 
 2019.07.29 ~
 
-### `0. common.py`
-### `1. fullset.py`
+### [`0. common.py`](/common.py)
+### [`1. fullset.py`](/fullset.py)
    * *in*
      * `./maps/fire.txt`
      * `...`
      * `./maps/tavg.txt`
    * *out*
      * `./fullset.csv`
-### `2. trainset.py`
+### [`2. trainset.py`](/trainset.py)
    * *in*
      * `./fullset.csv`
    * *out*
      * `./trainset.csv`
-### `3. train.py`
+### [`3. train.py`](/train.py)
    * *in*
      * `./trainset.csv`
    * *out*
      * `./model/model_{0..i}.h5`
      * `./history/history_{0..i}.h5`
-### `4. result.py`
+### [`4. result.py`](/result.py)
    * *in*
      * `./fullset.csv`
      * `./trainset.csv`
