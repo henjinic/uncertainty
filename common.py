@@ -95,7 +95,8 @@ def classify(binary_vec):
     code = encode_binary_vec(binary_vec)
     for label in _label_to_codes:
         if code in _label_to_codes[label]:
-            return label
+            return int(label)
+    return -1
 
 def onehot_encode(features, ith):
     target_column = features[:, ith]
@@ -147,3 +148,9 @@ def plot_hist(hist):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
     plt.show()
+
+def main():
+    print(_label_to_codes)
+
+if __name__ == '__main__':
+    main()

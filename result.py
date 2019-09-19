@@ -1,9 +1,9 @@
 """result.py
 
-4. to show various forms of the result
+4. to create result table
 
 Hyeonjin Kim
-2019.08.29
+2019.09.20
 """
 import collections
 import common
@@ -14,15 +14,15 @@ FULLSET_PATH = f'{common.BASE_DIR}/fullset.csv'
 TRAINSET_PATH = f'{common.BASE_DIR}/trainset.csv'
 MODEL_PATH = f'{common.BASE_DIR}/model/model.h5'
 
-UNPRED_OUTPUT_PATH = f'{common.BASE_DIR}/unpredicted_map.csv'
-PRED_OUTPUT_PATH = f'{common.BASE_DIR}/predicted_map.csv'
-PROBS_OUTPUT_PATH = f'{common.BASE_DIR}/full_probs.csv'
+OUTPUT_PATH = f'{common.BASE_DIR}/result.csv'
 
 N_MODEL = 10
 
-def get_codes(fullset):
+UNCERTAIN_LABEL = common.N_CLASS
+
+def get_types(fullset):
     results = []
-    for i, row in enumerate(fullset):
+    for row in fullset:
         disaster_prob_vec = row[:common.N_DISASTER]
         feature_vec = row[common.N_DISASTER:]
 
@@ -33,7 +33,7 @@ def get_codes(fullset):
         elif -99 in feature_vec:
             results.append(-99)
         else:
-            results.append(common.N_CLASS)
+            results.append(UNCERTAIN_LABEL)
 
     return np.array(results)
 
@@ -63,86 +63,55 @@ def check_and_decide(disaster_prob_vec, probs):
     possible_vecs = span(np.array(categorized_vec))
     possible_labels = list(map(common.classify, possible_vecs))
     decrease_idx = np.argsort(-np.array(probs))
+
     for i, idx in enumerate(decrease_idx):
         if idx in possible_labels:
             return idx, i
-    print('error')
+    return decrease_idx[0], 0
 
-def get_encoded_codes(fullset):
-    result = []
-    for row in fullset:
-        disaster_prob_vec = row[:common.N_DISASTER]
-        categorized_vec = common.categorize(disaster_prob_vec, 0.4, 0.6)
-        result.append('"' + ''.join(map(str, categorized_vec)) + '"')
-    return result
+def get_probs_for_uncertain(uncertainset):
+    trainset = common.load_data(TRAINSET_PATH, sep=',')
 
-def get_hunnit_prob_vecs(labels):
-    result = []
-    for label in labels:
-        row = [0.0] * common.N_CLASS
-        row[label] = 1.0
-        result.append(row)
-    return np.array(result)
+    encoded_uncertainset = common.onehot_encode(uncertainset[:, common.N_DISASTER:], 0)
+    encoded_trainset = common.onehot_encode(trainset, 0)
+
+    prob_sums = np.zeros((len(uncertainset), common.N_CLASS))
+    for i in range(N_MODEL):
+        x_train, _, _, _ = common.split(encoded_trainset, i)
+        _, normalized_uncertainset = common.normalize(x_train, encoded_uncertainset)
+        prob_sums += tf.keras.models.load_model(common.numbering(MODEL_PATH, i)).predict(normalized_uncertainset)
+        print(f'{i} is done.')
+
+    return prob_sums / N_MODEL
 
 def main():
+    print("Loading...")
     fullset = common.load_data(FULLSET_PATH, sep=',')
-    codes = get_codes(fullset)
-    uncertain_mask = (codes == common.N_CLASS)
 
-    uncertain_set = fullset[uncertain_mask]
-    uncertain_features = common.onehot_encode(uncertain_set[:, common.N_DISASTER:], 0)
+    types = get_types(fullset)
 
-    trainset = common.load_data(TRAINSET_PATH, sep=',')
-    trainset = common.onehot_encode(trainset, 0)
+    print("Predicting...")
+    uncertain_mask = (types == UNCERTAIN_LABEL)
+    uncertainset = fullset[uncertain_mask]
+    probs = get_probs_for_uncertain(uncertainset)
+    linenum_to_probs = { idx: prob for idx, prob in zip(np.nonzero(uncertain_mask)[0], probs) }
 
-    prob_sum = np.zeros((uncertain_features.shape[0], common.N_CLASS))
-    for i in range(N_MODEL):
-        x_train, _, _, _ = common.split(trainset, i)
-        _, normalized_features = common.normalize(x_train, uncertain_features)
-        prob_sum += tf.keras.models.load_model(common.numbering(MODEL_PATH, i)).predict(normalized_features)
-        print(i, ' is done.')
-    probs = prob_sum / N_MODEL
-    linenum_to_prob = { idx: prob for idx, prob in zip(np.nonzero(uncertain_mask)[0], probs) }
-
-    # unpredicted map
-    common.save_map(codes.reshape(common.N_ROWS, -1), UNPRED_OUTPUT_PATH)
-
-    # predicted map
-    counter = [0] * common.N_CLASS
-    predicted_map = codes.copy()
-    for i, (row, code) in enumerate(zip(fullset, codes)):
-        if code == common.N_CLASS:
-            predicted_map[i], order = check_and_decide(row[:common.N_DISASTER], linenum_to_prob[i])
-            counter[order] += 1
-    common.save_map(predicted_map.reshape(common.N_ROWS, -1), PRED_OUTPUT_PATH)
-    print(counter)
-
-    # full_probs
-    encoded_codes = get_encoded_codes(fullset)
-    certain_mask = (codes < common.N_CLASS) & (codes >= 0)
-
-    certain_set = codes[certain_mask]
-    cerntain_probs = get_hunnit_prob_vecs(certain_set)
-    linenum_to_certain_prob = { idx: prob for idx, prob in zip(np.nonzero(certain_mask)[0], cerntain_probs) }
-
-    full_probs = []
-    for i, code in enumerate(encoded_codes):
-        if i in linenum_to_prob:
-            _, order = check_and_decide(fullset[i][:common.N_DISASTER], linenum_to_prob[i])
-            full_probs.append([code] + linenum_to_prob[i].tolist() + [order + 1])
-        elif i in linenum_to_certain_prob:
-            full_probs.append([code] + linenum_to_certain_prob[i].tolist() + [0])
+    print("Deciding...")
+    probs_and_predictions = []
+    for i, (row, type_) in enumerate(zip(fullset, types)):
+        if type_ == UNCERTAIN_LABEL:
+            probs = linenum_to_probs[i].tolist()
+            prediction, order = check_and_decide(row[:common.N_DISASTER], probs)
+            probs_and_predictions.append(probs + [prediction] + [order + 1])
+        elif type_ == -99:
+            probs_and_predictions.append([-99] * (common.N_CLASS + 2))
         else:
-            full_probs.append([0])
+            probs = [0.0] * common.N_CLASS
+            probs[type_] = 1.0
+            probs_and_predictions.append(probs + [type_] + [0])
 
-    cur_id = 0
-    reversed_full_probs = []
-    for row in np.flipud(np.array(full_probs).reshape(common.N_ROWS, -1)).reshape(-1):
-        if len(row) == 1:
-            continue
-        reversed_full_probs.append([cur_id] + row)
-        cur_id += 1
-    common.save_data(reversed_full_probs, PROBS_OUTPUT_PATH)
+    print("Saving...")
+    common.save_data(np.concatenate((types[:, np.newaxis], probs_and_predictions), axis=1), OUTPUT_PATH)
 
 if __name__ == '__main__':
     main()

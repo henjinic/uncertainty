@@ -33,6 +33,4 @@
      * `./trainset.csv`
      * `./model/model_{0..i}.h5`
    * *out*
-     * `./unpredicted_map.csv`
-     * `./predicted_map.csv`
-     * `./full_probs.csv`
+     * `./result.csv`
