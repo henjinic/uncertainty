@@ -8,25 +8,21 @@ Hyeonjin Kim
 from enum import IntEnum
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import time
 
 BASE_DIR = './data'
 
-DISASTER_NAMES = 'fire landslide_re flood_re health product'.split()
-FEATURE_NAMES = 'geo_re pop prcp tavg'.split()
-
-N_DISASTER = len(DISASTER_NAMES)
-N_FEATURE = len(FEATURE_NAMES)
-
-N_COLS = 643
-N_ROWS = 661
+DISASTER_NAMES = 'fire landslide_re flood_re health_re product'.split()
+FEATURE_NAMES = 'geo_re pop prcp tavg tmax tmax_sum'.split()
 
 N_CLASS = 4
-A_CLASS = [2, 16, 18]
-B_CLASS = [4, 8, 12]
-D_CLASS = [0]
+N_DISASTER = len(DISASTER_NAMES)
+N_FEATURE = len(FEATURE_NAMES)
+N_COLS = 643
+N_ROWS = 661
 
 HEADER = '''ncols         643
 nrows         661
@@ -35,6 +31,21 @@ yllcorner     47670.999937602
 cellsize      1000.0000000944
 NODATA_value  -99
 '''
+
+USING_CLUSTERING = True
+
+if USING_CLUSTERING:
+    with open(f'{BASE_DIR}/label_to_codes.json') as f:
+        _label_to_codes = json.load(f)
+else:
+    _label_to_codes = {}
+    _label_to_codes[0] = [2, 16, 18]
+    _label_to_codes[1] = [4, 8, 12]
+    _label_to_codes[3] = [0]
+
+    universal_set = set(range(2 ** N_DISASTER))
+    complement_set = { code for codes in _label_to_codes.values() for code in codes }
+    _label_to_codes[2] = list(universal_set - complement_set)
 
 class Category(IntEnum):
     SAFE = 0
@@ -77,16 +88,14 @@ def is_certain(categorized_vec):
     else:
         return True
 
+def encode_binary_vec(binary_vec):
+    return int(''.join(map(str, map(int, binary_vec))), 2)
+
 def classify(binary_vec):
-    code = int(''.join(map(str, binary_vec)), 2)
-    if code in A_CLASS:
-        return 0
-    elif code in B_CLASS:
-        return 1
-    elif code in D_CLASS:
-        return 3
-    else:
-        return 2
+    code = encode_binary_vec(binary_vec)
+    for label in _label_to_codes:
+        if code in _label_to_codes[label]:
+            return label
 
 def onehot_encode(features, ith):
     target_column = features[:, ith]

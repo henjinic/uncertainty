@@ -10,6 +10,12 @@
      * `./maps/tavg.txt`
    * *out*
      * `./fullset.csv`
+### [`1-2. clust.py`](/clust.py)
+   * *in*
+     * `./fullset.csv`
+   * *out*
+     * `./clust_summary.csv`
+     * `./label_to_codes.json`
 ### [`2. trainset.py`](/trainset.py)
    * *in*
      * `./fullset.csv`
