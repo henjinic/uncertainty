@@ -29,11 +29,16 @@ def get_trainset(fullset):
     return np.array(result)
 
 def main():
+    print('Loading...')
     fullset = common.load_data(FULLSET_PATH, sep=',')
 
+    print('Processing...')
     trainset = get_trainset(fullset)
 
+    print('Saving...')
     common.save_data(trainset, OUTPUT_PATH)
+
+    print('Done!')
 
 if __name__ == '__main__':
     main()
