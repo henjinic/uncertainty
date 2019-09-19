@@ -25,7 +25,7 @@ def create_model(input_dim):
         tf.keras.layers.Dropout(0.1),
         tf.keras.layers.Dense(64, kernel_regularizer=tf.keras.regularizers.l2(0.001), activation='relu'),
         tf.keras.layers.Dropout(0.1),
-        tf.keras.layers.Dense(4, activation='softmax')
+        tf.keras.layers.Dense(common.N_CLASS, activation='softmax')
     ])
     model.compile(optimizer='adam',
                   loss='sparse_categorical_crossentropy',
