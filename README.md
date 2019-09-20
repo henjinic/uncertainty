@@ -1,7 +1,16 @@
 # Disaster Type Classifications
 
-2019.07.29 ~
+* *By Hyeonjin Kim*
+* *From 2019.07.29 to ????.??.??*
 
+## Package Requirements
+* kmodes
+* matplotlib
+* numpy
+* sklearn
+* tensorflow
+
+## Source Descriptions
 ### [`0. common.py`](/common.py)
 ### [`1. fullset.py`](/fullset.py)
    * *in*
