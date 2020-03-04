@@ -1,0 +1,28 @@
+{
+    "directory": "./data",
+    "disasters": [
+        "fire",
+        "landslide_re",
+        "flood_re",
+        "health_re",
+        "product"
+    ],
+    "features": [
+        "geo_re",
+        "pop",
+        "prcp",
+        "tavg",
+        "tmax",
+        "tmax_sum"
+    ],
+    "classes": {
+        "0": [1, 5, 8, 9, 13, 17, 21, 25, 29],
+        "1": [4, 6, 12, 20, 28],
+        "2": [16, 24],
+        "3": [0]
+    },
+    "size": {
+        "column": 643,
+        "row": 661
+    }
+}
